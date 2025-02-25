@@ -19,6 +19,17 @@ import java.util.List;
  */
 public class SignGUI {
 
+    public static boolean FOLIA;
+    static {
+        boolean folia = false;
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            folia = true;
+        } catch (ClassNotFoundException ignored) {
+        }
+        FOLIA = folia;
+    }
+
     /**
      * Constructs a new SignGUIBuilder.
      *
@@ -107,10 +118,15 @@ public class SignGUI {
                         action.execute(this, signEditor, player);
                 };
 
-                if (callHandlerSynchronously)
-                    Bukkit.getScheduler().runTask(plugin, runnable);
-                else
+                if (callHandlerSynchronously) {
+                    if (FOLIA) {
+                        Bukkit.getRegionScheduler().run(plugin, signEditor.getLocation(), __ -> runnable.run());
+                    } else {
+                        Bukkit.getScheduler().runTask(plugin, runnable);
+                    }
+                } else {
                     runnable.run();
+                }
             });
         } catch (Exception e) {
             throw new SignGUIException("Failed to open sign gui", e);
